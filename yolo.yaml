@@ -1,0 +1,70 @@
+name: randomlunch-api
+
+accounts:
+  - name: randomlunch
+    account_number: '206670076487'
+    default_region: us-east-1
+
+templates:
+  account:
+    path: cloudformation/account
+    params:
+      AccountName: '{{ account.name }}'
+  stage:
+    path: cloudformation/stage
+    params:
+      StageName: '{{ stage.name }}'
+      DomainName: randomlunch.burib.net
+      CertificateArnDev: arn:aws:acm:us-east-1:206670076487:certificate/d573c7f0-eaad-423a-86b9-3700f35f8084
+
+stages:
+  default:
+    account: randomlunch
+    region: us-east-1
+  dev:
+    account: randomlunch
+    region: us-east-1
+  prod:
+    account: randomlunch
+    region: us-east-1
+
+services:
+  RandomLunchAPI:
+    type: lambda-apigateway
+
+    build:
+      working_dir: '.'
+      dependencies: requirements.txt
+      include:
+        - randomlunch/
+        - main.py
+        - gateway/randomlunch-api-v1.yml
+      dist_dir: dist
+
+    deploy:
+      apigateway:
+        rest_api_name: RandomLunchAPI
+        swagger_template: gateway/randomlunch-api-v1.yml
+        domains:
+          - domain_name: '{{ stage.outputs.CustomDomainName }}'
+            base_path: '/'
+        integration:
+          type: AWS_PROXY
+          uri: 'arn:aws:apigateway:{{ stage.region }}:lambda:path/2015-03-31/functions/arn:aws:lambda:{{ stage.region }}:{{ account.account_number }}:function:RandomLunchAPI:{{ stage.name }}/invocations'
+          credentials: '{{ account.outputs.APIGatewayInvokeRoleArn }}'
+
+      lambda_function_configuration:
+        FunctionName: RandomLunchAPI
+        Role: '{{ stage.outputs.LambdaExecutionRoleArn }}'
+        Handler: main.lambda_handler
+        Timeout: 30
+        MemorySize: 128
+        Runtime: python3.6
+        TracingConfig:
+          Mode: Active
+
+      parameters:
+        stages:
+          default: []
+          dev: []
+          prod: []

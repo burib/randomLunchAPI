@@ -1,0 +1,75 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Stage-level infrastructure for the RandomLunch API
+
+Parameters:
+  StageName:
+    Type: String
+    Description: Name of the stage the infrastructure belongs to
+  DomainName:
+    Type: String
+    Description: Domain name of the website
+  CertificateArnProd:
+    Type: String
+    Description: ARN of an SSL certificate in ACM that will be set for the production stage
+    # TODO(szilveszter): This should be removed once we have the SSL certificate
+    Default: ''
+  CertificateArnDev:
+    Type: String
+    Description: ARN of an SSL certificate in ACM that will be set for the dev and all custom stages (must be a wildcard)
+
+Conditions:
+  IsProduction: !Equals [ !Ref StageName, prod ]
+  IsCustomStage:
+    Fn::And:
+      - !Not [ !Condition IsProduction ]
+      - !Not [ !Equals [ !Ref StageName, dev ] ]
+
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: basic_access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:*
+                  - xray:PutTelemetryRecords
+                  - xray:PutTraceSegments
+                Resource: '*'
+  APICustomDomain:
+    Type: AWS::ApiGateway::DomainName
+    Properties:
+      DomainName:
+        Fn::If:
+          - IsProduction
+          - !Sub api.${DomainName}
+          - Fn::If:
+            - IsCustomStage
+            - !Sub api-${StageName}.dev.${DomainName}
+            - !Sub api.dev.${DomainName}
+      CertificateArn:
+        Fn::If:
+          - IsProduction
+          - !Ref CertificateArnProd
+          - !Ref CertificateArnDev
+
+Outputs:
+  LambdaExecutionRoleArn:
+    Description: ARN of the IAM role assumed by the Lambda function
+    Value: !GetAtt 'LambdaExecutionRole.Arn'
+  CustomDomainName:
+    Description: Custom domain name for the API Gateway stage
+    Value: !Ref APICustomDomain

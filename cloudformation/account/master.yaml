@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: Account-level infrastructure for the RandomLunch API
+
+Parameters:
+  AccountName:
+    Type: String
+    Description: Name of the AWS account hosting the infrastructure
+
+Resources:
+  RandomLunchAPI:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: RandomLunchAPI
+  APIGatewayInvokeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: api_gateway_invoke_lambda
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource: '*'
+
+Outputs:
+  APIGatewayInvokeRoleArn:
+    Description: ARN of the IAM role used by API Gateway to invoke Lambda functions
+    Value: !GetAtt 'APIGatewayInvokeRole.Arn'
