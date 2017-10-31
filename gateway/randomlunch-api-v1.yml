@@ -1,0 +1,65 @@
+swagger: '2.0'
+
+info:
+  version: v1
+  title: randomlunch-api
+  description: Random Lunch webapp API
+
+basePath: /api/rnd/v1
+
+schemes:
+  - https
+
+consumes:
+  - application/json
+
+produces:
+  - application/json
+
+securityDefinitions:
+  api_key:
+    type: apiKey
+    name: x-api-key
+    in: header
+
+paths:
+  /random-place:
+    get:
+      description: Return a random place from the available spots
+      operationId: randomlunch.handlers.get_random_place
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/RandomPlaceResponse'
+  /places:
+    get:
+      description: Return all available places
+      operationId: randomlunch.handlers.get_all_places
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/AllPlacesResponse'
+    post:
+      description: Add a new place to the database
+      operationId: randomlunch.handlers.add_new_place
+      security:
+        - api_key: []
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/AddNewPlaceBody'
+      responses:
+        201:
+          description: Created
+
+definitions:
+  RandomPlaceResponse:
+    type: object
+  AllPlacesResponse:
+    type: object
+  AddNewPlaceBody:
+    type: object

@@ -11,7 +11,7 @@ Resources:
   RandomLunchAPI:
     Type: AWS::ApiGateway::RestApi
     Properties:
-      Name: RandomLunchAPI
+      Name: randomlunch-api
   APIGatewayInvokeRole:
     Type: AWS::IAM::Role
     Properties:

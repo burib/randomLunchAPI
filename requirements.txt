@@ -1,0 +1,4 @@
+connexion==1.1.16
+Flask==0.12.2
+https://github.com/racker/fleece/archive/master.zip#egg=fleece[connexion]
+Werkzeug==0.12.2

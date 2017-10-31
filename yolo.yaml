@@ -1,9 +1,12 @@
 name: randomlunch-api
 
 accounts:
-  - name: randomlunch
+  - name: randomlunchdev
+    account_number: '952080297105'
+    default_region: eu-west-1
+  - name: randomlunchprod
     account_number: '206670076487'
-    default_region: us-east-1
+    default_region: eu-west-1
 
 templates:
   account:
@@ -15,21 +18,22 @@ templates:
     params:
       StageName: '{{ stage.name }}'
       DomainName: randomlunch.burib.net
-      CertificateArnDev: arn:aws:acm:us-east-1:206670076487:certificate/d573c7f0-eaad-423a-86b9-3700f35f8084
+      CertificateArnDev: arn:aws:acm:us-east-1:952080297105:certificate/ea0a0d96-77e5-4e76-b0f7-a9a8719cdf5b
+      CertificateArnProd: arn:aws:acm:us-east-1:206670076487:certificate/323909f8-8c37-4a41-b631-cecaf58a7a8f
 
 stages:
   default:
-    account: randomlunch
-    region: us-east-1
+    account: randomlunchdev
+    region: eu-west-1
   dev:
-    account: randomlunch
-    region: us-east-1
+    account: randomlunchdev
+    region: eu-west-1
   prod:
-    account: randomlunch
-    region: us-east-1
+    account: randomlunchprod
+    region: eu-west-1
 
 services:
-  RandomLunchAPI:
+  randomlunch-api:
     type: lambda-apigateway
 
     build:
@@ -43,7 +47,7 @@ services:
 
     deploy:
       apigateway:
-        rest_api_name: RandomLunchAPI
+        rest_api_name: randomlunch-api
         swagger_template: gateway/randomlunch-api-v1.yml
         domains:
           - domain_name: '{{ stage.outputs.CustomDomainName }}'
