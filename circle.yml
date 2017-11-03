@@ -1,0 +1,23 @@
+machine:
+  python:
+    version: 3.6.1
+
+test:
+  override:
+    - echo "No tests available yet."
+
+deployment:
+  master-deploy:
+    branch: master
+    commands:
+      - yolo deploy-infra --stage dev
+      - yolo build-lambda --service randomlunch-api --stage dev
+      - yolo push --service randomlunch-api --stage dev
+      - yolo deploy-lambda --service randomlunch-api --stage dev --version ${CIRCLE_SHA1}
+  branch-deploy:
+    branch: /.*/
+    commands:
+      - yolo deploy-infra --stage ${CIRCLE_PR_USERNAME:-$CIRCLE_USERNAME}
+      - yolo build-lambda --service randomlunch-api --stage ${CIRCLE_PR_USERNAME:-$CIRCLE_USERNAME}
+      - yolo push --service randomlunch-api --stage ${CIRCLE_PR_USERNAME:-$CIRCLE_USERNAME}
+      - yolo deploy-lambda --service randomlunch-api --stage ${CIRCLE_PR_USERNAME:-$CIRCLE_USERNAME} --version ${CIRCLE_SHA1}
