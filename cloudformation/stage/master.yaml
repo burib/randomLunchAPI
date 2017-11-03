@@ -65,6 +65,15 @@ Resources:
           - IsProduction
           - !Ref CertificateArnProd
           - !Ref CertificateArnDev
+  DNSCustomDomain:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      AliasTarget:
+        DNSName: !GetAtt APICustomDomain.DistributionDomainName
+        HostedZoneId: 'Z2FDTNDATAQYW2'
+      Name: !Ref APICustomDomain
+      Type: A
+      HostedZoneName: !If [ IsProduction, !Sub '${DomainName}.', !Sub 'dev.${DomainName}.' ]
 
 Outputs:
   LambdaExecutionRoleArn:
