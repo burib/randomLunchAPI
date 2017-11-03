@@ -14,13 +14,23 @@ deployment:
   master-deploy:
     branch: master
     commands:
+      - ./scripts/setup-circle-build-credentials.sh
+      - yolo use-profile --profile-name randomlunchdev
       - yolo deploy-infra --stage dev
       - yolo build-lambda --service randomlunch-api --stage dev
       - yolo push --service randomlunch-api --stage dev
       - yolo deploy-lambda --service randomlunch-api --stage dev --version ${CIRCLE_SHA1}
+      # Also deploy to prod straight from master, because we prefer the bleeding edge
+      - yolo use-profile --profile-name randomlunchprod
+      - yolo deploy-infra --stage prod
+      - yolo build-lambda --service randomlunch-api --stage prod
+      - yolo push --service randomlunch-api --stage prod
+      - yolo deploy-lambda --service randomlunch-api --stage prod --version ${CIRCLE_SHA1}
   branch-deploy:
     branch: /.*/
     commands:
+      - ./scripts/setup-circle-build-credentials.sh
+      - yolo use-profile --profile-name randomlunchdev
       - yolo deploy-infra --stage ${CIRCLE_PR_USERNAME:-$CIRCLE_USERNAME}
       - yolo build-lambda --service randomlunch-api --stage ${CIRCLE_PR_USERNAME:-$CIRCLE_USERNAME}
       - yolo push --service randomlunch-api --stage ${CIRCLE_PR_USERNAME:-$CIRCLE_USERNAME}
