@@ -58,8 +58,24 @@ paths:
 
 definitions:
   RandomPlaceResponse:
-    type: object
+    $ref: '#/definitions/Place'
   AllPlacesResponse:
     type: object
+    properties:
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/Place'
   AddNewPlaceBody:
     type: object
+    properties:
+      title:
+        type: string
+  Place:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+      title:
+        type: string

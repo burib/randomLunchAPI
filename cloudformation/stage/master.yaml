@@ -49,6 +49,14 @@ Resources:
                   - xray:PutTelemetryRecords
                   - xray:PutTraceSegments
                 Resource: '*'
+        - PolicyName: database_access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:Scan
+                Resource: !GetAtt PlacesTable.Arn
   APICustomDomain:
     Type: AWS::ApiGateway::DomainName
     Properties:
@@ -74,6 +82,19 @@ Resources:
       Name: !Ref APICustomDomain
       Type: A
       HostedZoneName: !If [ IsProduction, !Sub '${DomainName}.', !Sub 'dev.${DomainName}.' ]
+  PlacesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${StageName}.Places'
+      KeySchema:
+        - AttributeName: ID
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: ID
+          AttributeType: S
+      ProvisionedThroughput:
+        ReadCapacityUnits: !If [ IsProduction, 5, 1 ]
+        WriteCapacityUnits: 1
 
 Outputs:
   LambdaExecutionRoleArn:

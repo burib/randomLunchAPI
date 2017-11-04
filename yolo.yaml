@@ -69,6 +69,8 @@ services:
 
       parameters:
         stages:
-          default: []
+          default:
+            - name: stage
+              value: '{{ stage.name }}'
           dev: []
           prod: []
