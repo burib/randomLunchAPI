@@ -49,6 +49,14 @@ Resources:
                   - xray:PutTelemetryRecords
                   - xray:PutTraceSegments
                 Resource: '*'
+        - PolicyName: ssm_config_access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ssm:GetParametersByPath
+                Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/randomlunch-api/${StageName}/*'
         - PolicyName: database_access
           PolicyDocument:
             Version: '2012-10-17'

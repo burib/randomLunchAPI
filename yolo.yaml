@@ -70,7 +70,11 @@ services:
       parameters:
         stages:
           default:
+            - name: log_level
+              value: debug
             - name: stage
               value: '{{ stage.name }}'
           dev: []
-          prod: []
+          prod:
+            - name: log_level
+              value: info
