@@ -9,14 +9,10 @@ Parameters:
   DomainName:
     Type: String
     Description: Domain name of the website
-  CertificateArnProd:
-    Type: String
-    Description: ARN of an SSL certificate in ACM that will be set for the production stage
-    # TODO(szilveszter): This should be removed once we have the SSL certificate
-    Default: ''
-  CertificateArnDev:
-    Type: String
-    Description: ARN of an SSL certificate in ACM that will be set for the dev and all custom stages (must be a wildcard)
+  ApplicationName:
+      Type: "String"
+      Description: "Name of the application"
+      #TODO: add validation. ( lowercase alphabets only )
 
 Conditions:
   IsProduction: !Equals [ !Ref StageName, prod ]
@@ -79,8 +75,10 @@ Resources:
       CertificateArn:
         Fn::If:
           - IsProduction
-          - !Ref CertificateArnProd
-          - !Ref CertificateArnDev
+          - Fn::ImportValue:
+              !Sub "${ApplicationName}-CertificateArnProdWildcard"
+          - Fn::ImportValue:
+              !Sub "${ApplicationName}-CertificateArnDevWildcard"
   DNSCustomDomain:
     Type: AWS::Route53::RecordSet
     Properties:
