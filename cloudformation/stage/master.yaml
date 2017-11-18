@@ -76,9 +76,9 @@ Resources:
         Fn::If:
           - IsProduction
           - Fn::ImportValue:
-              !Sub "${ApplicationName}-CertificateArnProdWildcard"
+              !Sub "${ApplicationName}-${StageName}-CertificateArnProdWildcard"
           - Fn::ImportValue:
-              !Sub "${ApplicationName}-CertificateArnDevWildcard"
+              !Sub "${ApplicationName}-${StageName}-CertificateArnDevWildcard"
   DNSCustomDomain:
     Type: AWS::Route53::RecordSet
     Properties:
