@@ -31,4 +31,5 @@ what and where to eat for lunch?
 **CircleCI**  
 <img src="https://circleci.com/circleci-logo-stacked-fb.png" width="120" alt="CircleCi" />
 
-**[Yolo](https://github.com/rackerlabs/yolo)**
+**YOLO**   
+<a href="https://github.com/rackerlabs/yolo" target="_blank"><img src="https://user-images.githubusercontent.com/956227/34872492-478dfc8e-f791-11e7-9dab-61ba0bb0a0c2.png" width="120" alt="yolo" /></a>
