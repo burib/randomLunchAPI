@@ -6,7 +6,7 @@ machine:
 
 dependencies:
   pre:
-    - pip install -U yolo
+    - pip install -U https://github.com/rackerlabs/yolo/archive/master.zip#egg=yolo
 
 test:
   override:
@@ -33,6 +33,7 @@ deployment:
     commands:
       - ./scripts/setup-circle-build-credentials.sh
       - yolo use-profile --profile-name randomlunchdev
+      - yolo deploy-infra --account randomlunchdev #deploy account level infrastructure
       - yolo deploy-infra --stage ${CIRCLE_PR_USERNAME:-$CIRCLE_USERNAME}
       - yolo build-lambda --service randomlunch-api --stage ${CIRCLE_PR_USERNAME:-$CIRCLE_USERNAME}
       - yolo push --service randomlunch-api --stage ${CIRCLE_PR_USERNAME:-$CIRCLE_USERNAME}

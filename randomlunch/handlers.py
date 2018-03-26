@@ -1,7 +1,11 @@
 import random
 
+from connexion import request
+from fleece.log import get_logger
+
 from .models import Place
 
+logger = get_logger(__name__)
 
 def get_random_place():
     # TODO(szilveszter): This solution doesn't scale, but should be good enough
@@ -17,4 +21,6 @@ def get_all_places():
 
 
 def add_new_place():
-    return {}, 201, {}
+    req = request.get_json()
+    new_place = Place.create(req['title'])
+    return new_place.to_dict(), 201, {}

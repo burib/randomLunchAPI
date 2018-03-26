@@ -13,12 +13,14 @@ templates:
     path: cloudformation/account
     params:
       AccountName: '{{ account.name }}'
+      ApplicationName: randomlunch
   stage:
     path: cloudformation/stage
     params:
       StageName: '{{ stage.name }}'
       DomainName: randomlunch.burib.net
       ApplicationName: randomlunch
+      AccountName: '{{ account.name }}'
 
 stages:
   default:
@@ -51,6 +53,13 @@ services:
         domains:
           - domain_name: '{{ stage.outputs.CustomDomainName }}'
             base_path: '/'
+        authorizers:
+          # `name` needs to match what's specified in the swagger template
+          - name: 'CognitoAuthorizer'
+            type: COGNITO_USER_POOLS
+            authType: apiKey
+            providerARNs: ['{{ account.outputs.APIGatewayProviderArns }}']
+            identitySource: 'method.request.header.authorization'
         integration:
           type: AWS_PROXY
           uri: 'arn:aws:apigateway:{{ stage.region }}:lambda:path/2015-03-31/functions/arn:aws:lambda:{{ stage.region }}:{{ account.account_number }}:function:RandomLunchAPI:{{ stage.name }}/invocations'

@@ -17,9 +17,9 @@ produces:
   - application/json
 
 securityDefinitions:
-  api_key:
+  CognitoAuthorizer:
     type: apiKey
-    name: x-api-key
+    name: authorization
     in: header
 
 paths:
@@ -45,7 +45,7 @@ paths:
       description: Add a new place to the database
       operationId: randomlunch.handlers.add_new_place
       security:
-        - api_key: []
+        - CognitoAuthorizer: []
       parameters:
         - name: body
           in: body
