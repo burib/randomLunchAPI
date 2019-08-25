@@ -13,6 +13,9 @@ Parameters:
       Type: "String"
       Description: "Name of the application"
       #TODO: add validation. ( lowercase alphabets only )
+  AccountName:
+    Type: String
+    Description: Name of the AWS account hosting the infrastructure
 
 Conditions:
   IsProduction: !Equals [ !Ref StageName, prod ]
@@ -60,6 +63,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - dynamodb:Scan
+                  - dynamodb:PutItem
                 Resource: !GetAtt PlacesTable.Arn
   APICustomDomain:
     Type: AWS::ApiGateway::DomainName

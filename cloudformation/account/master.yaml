@@ -6,6 +6,10 @@ Parameters:
   AccountName:
     Type: String
     Description: Name of the AWS account hosting the infrastructure
+  ApplicationName:
+      Type: "String"
+      Description: "Name of the application"
+      #TODO: add validation. ( lowercase alphabets only )
 
 Resources:
   RandomLunchAPI:
@@ -33,8 +37,106 @@ Resources:
                 Action:
                   - lambda:InvokeFunction
                 Resource: '*'
+  UserPool:
+    Type: 'AWS::Cognito::UserPool'
+    Properties:
+      UserPoolName: !Sub "${ApplicationName}_${AccountName}_UserPool"
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+        UnusedAccountValidityDays: 90
+      AliasAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
+      MfaConfiguration: 'OFF'
+  UserPoolClient:
+    Type: 'AWS::Cognito::UserPoolClient'
+    Properties:
+      UserPoolId: !Ref UserPool
+      ClientName: !Sub "${ApplicationName}_${AccountName}_UserPoolClient"
+      GenerateSecret: false
+  IdentityPool:
+    Type: 'AWS::Cognito::IdentityPool'
+    Properties:
+      IdentityPoolName: !Sub "${ApplicationName}_${AccountName}_IdentityPool"
+      AllowUnauthenticatedIdentities: false
+      CognitoIdentityProviders:
+        - ClientId: !Ref UserPoolClient
+          ProviderName: !GetAtt 'UserPool.ProviderName'
+  CognitoIdentityPoolUnAuthRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+            Action: 'sts:AssumeRoleWithWebIdentity'
+            Condition:
+              'ForAnyValue:StringLike':
+                'cognito-identity.amazonaws.com:amr': unauthenticated
+  CognitoIdentityPoolAuthStandardRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+            Action: 'sts:AssumeRoleWithWebIdentity'
+            Condition:
+              'ForAnyValue:StringLike':
+                'cognito-identity.amazonaws.com:amr': authenticated
+  CognitoIdentityPoolAuthStandardPolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: CognitoIdentityPoolAuthStandardPolicy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action: 'execute-api:Invoke'
+            Effect: Allow
+            Resource:
+              - !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RandomLunchAPI}/${AccountName}/*/locations'
+      Roles:
+        - !Ref CognitoIdentityPoolAuthStandardRole
+  CognitoIdentityPoolRoleMapping:
+    Type: "AWS::Cognito::IdentityPoolRoleAttachment"
+    Properties:
+      IdentityPoolId:
+        Ref:
+          IdentityPool
+      Roles:
+        authenticated:
+          "Fn::GetAtt":
+            - CognitoIdentityPoolAuthStandardRole
+            - Arn
+        unauthenticated:
+          "Fn::GetAtt":
+            - CognitoIdentityPoolUnAuthRole
+            - Arn
 
 Outputs:
   APIGatewayInvokeRoleArn:
     Description: ARN of the IAM role used by API Gateway to invoke Lambda functions
     Value: !GetAtt 'APIGatewayInvokeRole.Arn'
+  APIGatewayProviderArns:
+    Description: ARN of the API Gateway authorizer
+    Value: !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/${UserPool}'
+  UserPoolId:
+    Description: Id of the user pool
+    Value: !Ref UserPool
+    Export:
+      Name: !Sub "${ApplicationName}-${AccountName}-UserPoolId"
+  UserPoolClientId:
+    Description: AppClientId / UserPoolClient
+    Value: !Ref UserPoolClient
+    Export:
+      Name: !Sub "${ApplicationName}-${AccountName}-UserPoolClient"
+  IdentityPoolId:
+    Description: Identity Pool Id
+    Value: !Ref IdentityPool
+    Export:
+      Name: !Sub "${ApplicationName}-${AccountName}-IdentityPoolId"
